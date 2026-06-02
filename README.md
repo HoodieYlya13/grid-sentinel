@@ -1,3 +1,13 @@
+---
+title: Grid Sentinel
+emoji: 🛡️
+colorFrom: blue
+colorTo: slate
+sdk: docker
+pinned: false
+app_port: 7860
+---
+
 # SciOps Grid Sentinel 🛡️
 
 SciOps Grid Sentinel is a production-grade, containerized **Self-Healing Observability Console and Orchestration Pipeline** designed for distributed high-performance grid environments (such as the Worldwide LHC Computing Grid - WLCG).
