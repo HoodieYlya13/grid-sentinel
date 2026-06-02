@@ -173,7 +173,6 @@ class GridSentinelTestCase(TestCase):
             is_live=True
         )
 
-        # Post a custom Kp of 6.5 (should map to spike)
         response = self.client.post(
             '/api/workload/override/',
             data={'kp': 6.5},
@@ -191,7 +190,6 @@ class GridSentinelTestCase(TestCase):
         self.assertAlmostEqual(dyn['base_kp_index'], 6.5)
         self.assertAlmostEqual(dyn['base_solar_wind_speed'], 733.3, places=1)
 
-        # Post a custom Kp of 2.0 (should update and map to drop)
         response = self.client.post(
             '/api/workload/override/',
             data={'kp': 2.0},

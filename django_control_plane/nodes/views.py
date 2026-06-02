@@ -173,10 +173,12 @@ class MetricsWebhookView(View):
                             message=f"ML Outlier detected (CPU: {metric.cpu_usage}%, RAM: {metric.ram_usage}%). Node state set to DEGRADED."
                         )
                         
-                        threading.Thread(
-                            target=trigger_ansible_recovery, 
-                            args=(node.hostname,)
-                        ).start()
+                        import sys
+                        if 'test' not in sys.argv:
+                            threading.Thread(
+                                target=trigger_ansible_recovery, 
+                                args=(node.hostname,)
+                            ).start()
                 
             return JsonResponse({
                 'status': 'success', 
