@@ -19,8 +19,13 @@ def pre_populate_healthy_history(node):
     now = timezone.now()
     metrics = []
     
-    cpu_base = random.randint(15, 30)
-    ram_base = random.randint(30, 50)
+    import hashlib
+    import random
+    seed = int(hashlib.md5(node.hostname.encode()).hexdigest(), 16) % 10000
+    local_rand = random.Random(seed)
+    
+    cpu_base = local_rand.randint(15, 30)
+    ram_base = local_rand.randint(30, 50)
     
     for i in range(50):
         timestamp = now - datetime.timedelta(seconds=(50 - i) * 5)

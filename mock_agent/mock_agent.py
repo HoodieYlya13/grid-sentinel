@@ -37,8 +37,11 @@ def send_telemetry(metrics):
         print(f"[{NODE_HOSTNAME}] Warning: Failed to post telemetry: {e}")
         return None
 
-cpu_base = random.randint(15, 30)
-ram_base = random.randint(30, 50)
+import hashlib
+seed = int(hashlib.md5(NODE_HOSTNAME.encode()).hexdigest(), 16) % 10000
+local_rand = random.Random(seed)
+cpu_base = local_rand.randint(15, 30)
+ram_base = local_rand.randint(30, 50)
 has_memory_leak = False
 loop_count = 0
 
