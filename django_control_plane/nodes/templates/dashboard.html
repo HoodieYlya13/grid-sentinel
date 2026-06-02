@@ -678,6 +678,9 @@
       border-radius: 4px;
       letter-spacing: 0.5px;
       animation: blink 1.5s infinite;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .badge-override-spike {
@@ -767,7 +770,12 @@
     </div>
     
     <div class="solar-status-card">
-      <div class="solar-icon">☀️</div>
+      <div class="solar-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 2rem; height: 2rem; display: block;">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+        </svg>
+      </div>
       <div class="solar-info">
         <h3 style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
           NASA Space Weather Monitor
@@ -799,7 +807,8 @@
             <span id="kp-slider-val" style="font-family: 'Orbitron', sans-serif; font-size: 0.72rem; color: var(--accent-cyan); font-weight: 800; min-width: 24px; display: inline-block; text-align: right;">{{ workload.base_kp_index|floatformat:1 }}</span>
           </div>
           <span id="override-status-badge" class="badge-override" style="display: none;">
-            ⚠️ SOLAR STORM OVERRIDE ACTIVE
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px; min-width: 12px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            SOLAR STORM OVERRIDE ACTIVE
           </span>
         </div>
       </div>
@@ -1020,8 +1029,10 @@
             overrideBtn.textContent = 'Cancel Override';
             overrideBtn.className = `btn-override ${type === 'spike' ? 'override-active-spike' : 'override-active-drop'}`;
             
-            overrideBadge.style.display = 'inline-block';
-            overrideBadge.textContent = type === 'spike' ? '⚠️ SOLAR STORM OVERRIDE ACTIVE' : '❄️ CALM WEATHER OVERRIDE ACTIVE';
+            overrideBadge.style.display = 'inline-flex';
+            overrideBadge.innerHTML = type === 'spike' 
+              ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px; min-width: 12px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> SOLAR STORM OVERRIDE ACTIVE` 
+              : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px; min-width: 12px;"><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 16-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4"/></svg> CALM WEATHER OVERRIDE ACTIVE`;
             overrideBadge.className = `badge-override ${type === 'spike' ? 'badge-override-spike' : 'badge-override-drop'}`;
           } else {
             const isStorming = state.baseKp > 5.0;
