@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: grid_db
+    environment:
+      POSTGRES_DB: grid_sentinel
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: grid_redis
+    ports:
+      - "6379:6379"
+
+  django:
+    build:
+      context: ./django_control_plane
+      dockerfile: Dockerfile
+    container_name: grid_control_plane
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./django_control_plane:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgrespassword@db:5432/grid_sentinel
+      - REDIS_URL=redis://redis:6379/0
+      - DJANGO_DEBUG=True
+      - NASA_API_KEY=${NASA_API_KEY:-DEMO_KEY}
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - db
+      - redis
+
+  grid-worker-01:
+    image: python:3.11-slim
+    container_name: grid_worker_01
+    volumes:
+      - ./puppet:/etc/puppetlabs/code
+      - ./mock_agent:/agent
+    command: python /agent/mock_agent.py grid-worker-01
+    environment:
+      - CONTROL_PLANE_URL=http://django:8000
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - django
+
+  grid-worker-02:
+    image: python:3.11-slim
+    container_name: grid_worker_02
+    volumes:
+      - ./puppet:/etc/puppetlabs/code
+      - ./mock_agent:/agent
+    command: python /agent/mock_agent.py grid-worker-02
+    environment:
+      - CONTROL_PLANE_URL=http://django:8000
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - django
+
+volumes:
+  pgdata:

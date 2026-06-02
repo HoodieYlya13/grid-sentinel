@@ -1,0 +1,65 @@
+---
+- name: Grid Node Autonomous Recovery Playbook
+  hosts: all
+  gather_facts: false
+  vars:
+    control_plane_url: "http://django:8000"
+    node_hostname: "{{ inventory_hostname }}"
+
+  tasks:
+    - name: 1. Notify Control Plane - Recovery Initiated
+      uri:
+        url: "{{ control_plane_url }}/api/nodes/recover/"
+        method: POST
+        body_format: json
+        body:
+          hostname: "{{ node_hostname }}"
+          status: "Recovering"
+          message: "Ansible playbook started recovery operations."
+        status_code: 200
+      delegate_to: localhost
+
+    - name: 2. Gracefully Drain Active Compute Workloads
+      shell: |
+        echo "Draining jobs for grid node {{ node_hostname }}..."
+        sleep 2
+      register: drain_result
+
+    - name: 3. Perform Hard System Reboot / Service Restart
+      shell: |
+        echo "Simulating service stack restart on {{ node_hostname }}..."
+        # In a real environment, this might be: systemctl restart puppet-agent / docker restart
+        sleep 3
+      register: reboot_result
+
+    - name: 4. Verify Local Health Checks & Connectivity
+      shell: |
+        echo "Checking services..."
+        exit 0
+      register: health_check
+
+    - name: 5. Notify Control Plane - Recovery Completed Successfully
+      uri:
+        url: "{{ control_plane_url }}/api/nodes/recover/"
+        method: POST
+        body_format: json
+        body:
+          hostname: "{{ node_hostname }}"
+          status: "Healthy"
+          message: "Ansible successfully restored node services and completed local health checks."
+        status_code: 200
+      delegate_to: localhost
+      when: health_check.rc == 0
+
+    - name: 6. Notify Control Plane - Recovery Failed
+      uri:
+        url: "{{ control_plane_url }}/api/nodes/recover/"
+        method: POST
+        body_format: json
+        body:
+          hostname: "{{ node_hostname }}"
+          status: "Dead"
+          message: "Ansible recovery failed during post-reboot health checks."
+        status_code: 200
+      delegate_to: localhost
+      when: health_check.rc != 0

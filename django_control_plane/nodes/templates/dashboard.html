@@ -1,0 +1,1313 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SciOps Grid Sentinel | Control Plane</title>
+  
+  <!-- SEO Metadata -->
+  <meta name="description" content="SciOps Grid Sentinel: An autonomous, self-healing observability console and SRE orchestration pipeline for distributed grid clusters. Integrates NASA space weather monitoring with unsupervised Isolation Forest machine learning for real-time anomaly detection and closed-loop Ansible remediation.">
+  <meta name="keywords" content="SRE, self-healing architecture, DevOps, observability, anomaly detection, Isolation Forest, NASA space weather, Django, Ansible, Puppet ENC, container remediation, cluster orchestration">
+  <meta name="author" content="SciOps">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SciOps Grid Sentinel | Control Plane">
+  <meta property="og:description" content="An autonomous self-healing observability console integrating NASA Space Weather metrics with Isolation Forest anomaly detection and automated Ansible remediation.">
+  <meta property="og:site_name" content="SciOps Grid Sentinel">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SciOps Grid Sentinel | Control Plane">
+  <meta name="twitter:description" content="An autonomous self-healing observability console integrating NASA Space Weather metrics with Isolation Forest anomaly detection and automated Ansible remediation.">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-primary: #0a0d14;
+      --bg-secondary: #101424;
+      --accent-cyan: #00f0ff;
+      --accent-green: #39ff14;
+      --accent-orange: #ffb700;
+      --accent-red: #ff3131;
+      --accent-blue: #00d2ff;
+      --text-main: #f5f6fa;
+      --text-muted: #8b9bb4;
+      --glass-bg: rgba(16, 20, 36, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    html::-webkit-scrollbar, body::-webkit-scrollbar {
+      display: none;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-primary);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 240, 255, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(57, 255, 20, 0.03) 0%, transparent 45%);
+      color: var(--text-main);
+      padding: 2rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .title-area h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--text-main), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-area p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 5px;
+    }
+
+    .solar-status-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      backdrop-filter: blur(15px);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .solar-icon {
+      font-size: 2rem;
+      animation: pulse 3s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px var(--accent-orange)); }
+      50% { transform: scale(1.1); filter: drop-shadow(0 0 15px var(--accent-orange)); }
+    }
+
+    .solar-info h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .solar-row {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    
+    .solar-row.solar-row-active {
+      font-size: 1rem;
+      margin-bottom: 0;
+    }
+    
+    .solar-label-col {
+      display: inline-block;
+      width: 145px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    
+    .active-header-lbl {
+      color: var(--text-main);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .solar-kp-col {
+      display: inline-block;
+      width: 65px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    
+    .solar-kp-col strong {
+      display: inline-block;
+      width: 28px;
+      text-align: right;
+      font-family: 'Orbitron', sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .active-val-col {
+      color: var(--accent-cyan);
+    }
+    
+    .solar-wind-col {
+      display: inline-block;
+      width: 160px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    
+    .solar-wind-col strong {
+      display: inline-block;
+      width: 60px;
+      text-align: right;
+      font-family: 'Orbitron', sans-serif;
+      font-variant-numeric: tabular-nums;
+      margin-right: 8px;
+    }
+    
+    .solar-mult-col {
+      display: inline-block;
+      width: 110px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+    
+    .solar-mult-col .stress-tag {
+      background: rgba(255, 183, 0, 0.15);
+      border: 1px solid var(--accent-orange);
+      color: var(--accent-orange);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 0.85rem;
+      font-family: 'Orbitron', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      width: 100%;
+    }
+    
+    .solar-mult-col strong {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .architecture-banner {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+      margin-bottom: 2rem;
+    }
+
+    .architecture-banner h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      letter-spacing: 1px;
+      color: var(--accent-cyan);
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .architecture-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: rgba(0, 240, 255, 0.25);
+      line-height: 1;
+    }
+
+    .step-item h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .step-item p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .node-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+      animation: cardEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .node-card.leaving {
+      animation: cardExit 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      pointer-events: none;
+    }
+
+    @keyframes cardEnter {
+      from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+      }
+    }
+
+    @keyframes cardExit {
+      to {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+      }
+    }
+
+    .node-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    .node-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .node-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .node-status-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .status-healthy {
+      background: rgba(57, 255, 20, 0.1);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+      box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+    }
+
+    .status-degraded {
+      background: rgba(255, 49, 49, 0.1);
+      border: 1px solid var(--accent-red);
+      color: var(--accent-red);
+      box-shadow: 0 0 10px rgba(255, 49, 49, 0.2);
+      animation: flash 1s infinite alternate;
+    }
+
+    .status-recovering {
+      background: rgba(0, 210, 255, 0.1);
+      border: 1px solid var(--accent-blue);
+      color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+    }
+
+    @keyframes flash {
+      0% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    .anomaly-badge {
+      background: rgba(255, 49, 49, 0.15);
+      border: 1px solid var(--accent-red);
+      color: var(--accent-red);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      box-shadow: 0 0 8px rgba(255, 49, 49, 0.3);
+      animation: flash 1s infinite alternate;
+    }
+
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .telemetry-label {
+      color: var(--text-muted);
+    }
+
+    .telemetry-val {
+      font-weight: 600;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease-in-out;
+    }
+
+    .bar-normal { background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green)); }
+    .bar-warning { background: linear-gradient(90deg, var(--accent-orange), var(--accent-red)); }
+
+    .node-meta {
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .summary-section {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .summary-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    .summary-num {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      margin-top: 5px;
+    }
+
+    .summary-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+
+    .sidebar-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-card h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 0.5rem;
+      color: var(--accent-cyan);
+    }
+
+    .event-list {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding-right: 0.25rem;
+      min-height: 0;
+    }
+
+    .event-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .event-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+
+    .event-item {
+      background: rgba(255, 255, 255, 0.02);
+      border-left: 3px solid var(--text-muted);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.8rem;
+    }
+
+    .event-time {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    .event-host {
+      font-weight: 600;
+      color: var(--accent-cyan);
+      margin-left: 0.25rem;
+    }
+
+    .event-msg {
+      margin-top: 3px;
+      color: var(--text-main);
+    }
+
+    .event-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 1px 4px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      margin-left: 0.5rem;
+    }
+
+    .badge-info { background: rgba(0, 240, 255, 0.1); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+    .badge-warning { background: rgba(255, 49, 49, 0.1); color: var(--accent-red); border: 1px solid var(--accent-red); }
+    .badge-success { background: rgba(57, 255, 20, 0.1); color: var(--accent-green); border: 1px solid var(--accent-green); }
+    .badge-error { background: rgba(255, 183, 0, 0.1); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
+
+    .event-item-info { border-left-color: var(--accent-blue); }
+    .event-item-warning { border-left-color: var(--accent-red); }
+    .event-item-success { border-left-color: var(--accent-green); }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .event-new {
+      animation: slideIn 0.5s ease-out forwards;
+    }
+
+    @media (min-width: 1025px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      }
+      .main-layout {
+        align-items: stretch;
+      }
+      .sidebar-column {
+        position: relative;
+      }
+      .sidebar-card {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+      .event-list {
+        flex: 1;
+        min-height: 0;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+      .event-list {
+        max-height: 400px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .solar-status-card {
+        width: 100%;
+        justify-content: flex-start;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .solar-row {
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+      }
+
+      .solar-label-col {
+        width: 100% !important;
+        margin-bottom: 2px;
+      }
+
+      .summary-section {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+
+    .btn-override {
+      background: rgba(255, 69, 0, 0.15);
+      border: 1px solid rgba(255, 69, 0, 0.4);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 69, 0, 0.1);
+    }
+    
+    .btn-override:hover {
+      background: rgba(255, 69, 0, 0.3);
+      border-color: rgba(255, 69, 0, 0.8);
+      box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-override:active {
+      transform: translateY(1px);
+    }
+
+    .btn-override:disabled {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn-override.override-active-spike {
+      background: rgba(255, 0, 0, 0.25);
+      border-color: rgba(255, 0, 0, 0.8);
+      box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+      animation: pulse-red 2s infinite ease-in-out;
+    }
+
+    .btn-override.override-active-drop {
+      background: rgba(0, 191, 255, 0.25);
+      border-color: rgba(0, 191, 255, 0.8);
+      box-shadow: 0 0 15px rgba(0, 191, 255, 0.6);
+      animation: pulse-blue 2s infinite ease-in-out;
+    }
+
+    .badge-override {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.62rem;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      animation: blink 1.5s infinite;
+    }
+
+    .badge-override-spike {
+      background: rgba(255, 0, 0, 0.15);
+      border: 1px solid rgba(255, 0, 0, 0.5);
+      color: #ff4500;
+    }
+
+    .badge-override-drop {
+      background: rgba(0, 191, 255, 0.15);
+      border: 1px solid rgba(0, 191, 255, 0.5);
+      color: #00bfff;
+    }
+
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 5px rgba(255, 0, 0, 0.4); }
+      50% { box-shadow: 0 0 15px rgba(255, 0, 0, 0.8); }
+    }
+
+    @keyframes pulse-blue {
+      0%, 100% { box-shadow: 0 0 5px rgba(0, 191, 255, 0.4); }
+      50% { box-shadow: 0 0 15px rgba(0, 191, 255, 0.8); }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .premium-slider {
+      -webkit-appearance: none;
+      width: 120px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .premium-slider:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+    
+    .premium-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 8px var(--accent-cyan);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .premium-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      background: var(--text-main);
+      box-shadow: 0 0 12px var(--text-main);
+    }
+    
+    .premium-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border: none;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 8px var(--accent-cyan);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .premium-slider::-moz-range-thumb:hover {
+      transform: scale(1.2);
+      background: var(--text-main);
+      box-shadow: 0 0 12px var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title-area">
+      <h1>SciOps Grid Sentinel</h1>
+      <p>Autonomous Anomaly Detection & Self-Healing Grid Cluster Orchestrator</p>
+    </div>
+    
+    <div class="solar-status-card">
+      <div class="solar-icon">☀️</div>
+      <div class="solar-info">
+        <h3 style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+          NASA Space Weather Monitor
+          <span id="nasa-live-badge" style="font-size: 0.65rem; background: {% if workload.is_live %}rgba(57, 255, 20, 0.15){% else %}rgba(255, 183, 0, 0.15){% endif %}; color: {% if workload.is_live %}var(--accent-green){% else %}var(--accent-orange){% endif %}; border: 1px solid {% if workload.is_live %}var(--accent-green){% else %}var(--accent-orange){% endif %}; padding: 1px 4px; border-radius: 3px; font-family: 'Orbitron', sans-serif;">
+            {% if workload.is_live %}LIVE{% else %}OFFLINE (RATE-LIMITED){% endif %}
+          </span>
+        </h3>
+        <div class="solar-row">
+          <span class="solar-label-col">NASA Base (15m Cache):</span>
+          <span class="solar-kp-col">Kp: <strong id="base-kp">{{ workload.base_kp_index|default:"3.0"|floatformat:1 }}</strong></span>
+          <span class="solar-wind-col">Wind: <strong id="base-wind">{{ workload.base_solar_wind_speed|default:"380.0"|floatformat:1 }}</strong> km/s</span>
+        </div>
+        <div class="solar-row solar-row-active">
+          <span class="solar-label-col active-header-lbl">Active Load:</span>
+          <span class="solar-kp-col active-val-col">Kp: <strong id="active-kp">{{ workload.geomagnetic_kp_index|floatformat:1 }}</strong></span>
+          <span class="solar-wind-col active-val-col">Wind: <strong id="active-wind">{{ workload.solar_wind_speed|floatformat:1 }}</strong> km/s</span>
+          <span class="solar-mult-col"><span class="stress-tag"><strong id="active-multiplier">{{ workload.stress_multiplier|floatformat:2 }}</strong>x Load</span></span>
+        </div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; line-height: 1.3; max-width: 480px;">
+          *NASA API is queried every 15 minutes to respect rate limits. High-frequency micro-fluctuations are simulated client-side to maintain a responsive real-time stress testing stream.
+        </div>
+        <div class="solar-control" style="margin-top: 12px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <button id="btn-toggle-override" class="btn-override">
+            Simulate Storm Spike
+          </button>
+          <div class="slider-container" style="display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.03); padding: 6px 12px; border-radius: 8px; border: 1px solid var(--glass-border);">
+            <label for="kp-slider" style="font-family: 'Orbitron', sans-serif; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Kp Adjust:</label>
+            <input type="range" id="kp-slider" min="0.0" max="9.0" step="0.1" value="{{ workload.base_kp_index|default:'3.0' }}" class="premium-slider" style="width: 120px;">
+            <span id="kp-slider-val" style="font-family: 'Orbitron', sans-serif; font-size: 0.72rem; color: var(--accent-cyan); font-weight: 800; min-width: 24px; display: inline-block; text-align: right;">{{ workload.base_kp_index|floatformat:1 }}</span>
+          </div>
+          <span id="override-status-badge" class="badge-override" style="display: none;">
+            ⚠️ SOLAR STORM OVERRIDE ACTIVE
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-layout">
+    <div>
+      <div class="architecture-banner">
+        <h2>Grid Control Plane & Simulation Overview</h2>
+        <p style="font-size: 0.85rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.5rem">
+          This console monitors a live, self-healing grid cluster. 
+          <strong>NASA Space Weather API data</strong> dynamically sets workload stress (scaling CPU, Jobs, and Network). 
+          To demonstrate remediation, a latent memory leak is scheduler-injected on <code>grid-worker-02</code>. 
+          An unsupervised <strong>Isolation Forest ML model</strong> trains on healthy history, using locked-baseline gating to filter out normal workload fluctuations. It detects the progressive memory leak early (at ~50%-60% RAM, well before the 90% static fail-safe threshold) and triggers an <strong>Ansible recovery playbook</strong> to restore container health.
+        </p>
+        <div class="architecture-steps">
+          <div class="step-item">
+            <span class="step-num">01</span>
+            <div>
+              <h4>Puppet ENC Configuration</h4>
+              <p>Worker nodes bootstrap and check-in to fetch dynamically compiled configuration states via ENC webhooks.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <span class="step-num">02</span>
+            <div>
+              <h4>ML Outlier Detection</h4>
+              <p>An unsupervised Isolation Forest algorithm fits dynamically on healthy telemetry history to identify leaks.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <span class="step-num">03</span>
+            <div>
+              <h4>Ansible Recovery loop</h4>
+              <p>Upon detection of anomalies, automated workflows gracefully drain container tasks and execute reboot playbooks.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="summary-section">
+        <div class="summary-card">
+          <div class="summary-title">Total Monitored Nodes</div>
+          <div id="sum-total-nodes" class="summary-num">{{ nodes|length }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-title">Healthy State</div>
+          <div id="sum-healthy-nodes" class="summary-num" style="color: var(--accent-green);">
+            {{ healthy_count }}
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-title">Active Grid Jobs</div>
+          <div id="sum-active-jobs" class="summary-num" style="color: var(--accent-blue);">
+            {{ total_jobs }}
+          </div>
+        </div>
+      </section>
+
+      <main class="dashboard-grid" id="nodes-container">
+        {% for item in nodes %}
+        <div class="node-card" id="card-{{ item.node.hostname }}">
+          <div class="node-header">
+            <span class="node-name">{{ item.node.hostname }}</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span id="badge-ml-{{ item.node.hostname }}" class="anomaly-badge" {% if not item.telemetry.is_anomaly or item.node.status != 'Degraded' %}style="display: none;"{% endif %}>ML Outlier</span>
+              <span id="status-{{ item.node.hostname }}" class="node-status-tag 
+                {% if item.node.status == 'Healthy' %}status-healthy
+                {% elif item.node.status == 'Degraded' %}status-degraded
+                {% else %}status-recovering{% endif %}">
+                {{ item.node.status }}
+              </span>
+            </div>
+          </div>
+
+          <div class="telemetry-row">
+            <span class="telemetry-label">CPU Core Utilization</span>
+            <span class="telemetry-val" style="font-family: 'Orbitron', sans-serif; font-variant-numeric: tabular-nums; display: inline-block; width: 65px; text-align: right;"><span id="val-cpu-{{ item.node.hostname }}">{{ item.telemetry.cpu_usage|default:"0.0"|floatformat:1 }}</span>%</span>
+          </div>
+          <div class="progress-bar-container">
+            <div id="bar-cpu-{{ item.node.hostname }}" class="progress-bar {% if item.telemetry.cpu_usage > 85 %}bar-warning{% else %}bar-normal{% endif %}" 
+                 style="width: {{ item.telemetry.cpu_usage|default:0 }}%;"></div>
+          </div>
+
+          <div style="margin-top: 1.25rem;">
+            <div class="telemetry-row">
+              <span class="telemetry-label">RAM Consumption</span>
+              <span class="telemetry-val" style="font-family: 'Orbitron', sans-serif; font-variant-numeric: tabular-nums; display: inline-block; width: 65px; text-align: right;"><span id="val-ram-{{ item.node.hostname }}">{{ item.telemetry.ram_usage|default:"0.0"|floatformat:1 }}</span>%</span>
+            </div>
+            <div class="progress-bar-container">
+              <div id="bar-ram-{{ item.node.hostname }}" class="progress-bar {% if item.telemetry.ram_usage > 80 %}bar-warning{% else %}bar-normal{% endif %}" 
+                   style="width: {{ item.telemetry.ram_usage|default:0 }}%;"></div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem;">
+            <div>
+              <span style="color: var(--text-muted);">Net Down:</span>
+              <strong id="val-rx-{{ item.node.hostname }}" style="font-family: 'Orbitron', sans-serif;">{{ item.telemetry.network_rx|default:"0.0"|floatformat:1 }} MB/s</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted);">Net Up:</span>
+              <strong id="val-tx-{{ item.node.hostname }}" style="font-family: 'Orbitron', sans-serif;">{{ item.telemetry.network_tx|default:"0.0"|floatformat:1 }} MB/s</strong>
+            </div>
+          </div>
+
+          <div class="node-meta">
+            <span>Role: {{ item.node.get_role_display }}</span>
+            <span>Jobs: <strong id="val-jobs-{{ item.node.hostname }}">{{ item.telemetry.active_jobs|default:"0" }}</strong></span>
+            <span>Threads: {{ item.node.thread_count }}</span>
+          </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: var(--glass-bg); border: 1px dashed var(--glass-border); border-radius: 16px;">
+          <p style="color: var(--text-muted);">No worker nodes currently registered. Run agent containers to begin ingestion.</p>
+        </div>
+        {% endfor %}
+      </main>
+    </div>
+
+    <div class="sidebar-column">
+      <div class="sidebar-card">
+        <h2>Live Operations Log</h2>
+        <div class="event-list" id="event-list-container">
+          {% for event in events %}
+          <div class="event-item 
+            {% if event.level == 'INFO' %}event-item-info
+            {% elif event.level == 'WARNING' %}event-item-warning
+            {% elif event.level == 'SUCCESS' %}event-item-success
+            {% else %}event-item-error{% endif %}">
+            <div>
+              <span class="event-time">{{ event.timestamp|date:"H:i:s" }}</span>
+              <span class="event-badge 
+                {% if event.level == 'INFO' %}badge-info
+                {% elif event.level == 'WARNING' %}badge-warning
+                {% elif event.level == 'SUCCESS' %}badge-success
+                {% else %}badge-error{% endif %}">{{ event.level }}</span>
+              <span class="event-host">[{{ event.hostname }}]</span>
+            </div>
+            <div class="event-msg">{{ event.message }}</div>
+          </div>
+          {% empty %}
+          <p style="color: var(--text-muted); text-align: center; padding: 1.5rem; font-size: 0.8rem;">Waiting for logs... Start the cluster to stream events.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let isDraggingSlider = false;
+    let state = {
+      baseKp: parseFloat("{{ workload.base_kp_index|default:'3.0' }}"),
+      baseWind: parseFloat("{{ workload.base_solar_wind_speed|default:'380.0' }}"),
+      targetKp: parseFloat("{{ workload.geomagnetic_kp_index|default:'3.0' }}"),
+      targetWind: parseFloat("{{ workload.solar_wind_speed|default:'400.0' }}"),
+      isLive: {% if workload.is_live %}true{% else %}false{% endif %},
+      nodes: {}
+    };
+
+    {% for item in nodes %}
+    state.nodes["{{ item.node.hostname }}"] = {
+      targetCpu: parseFloat("{{ item.telemetry.cpu_usage|default:'0.0' }}"),
+      targetRam: parseFloat("{{ item.telemetry.ram_usage|default:'0.0' }}"),
+      currentCpu: parseFloat("{{ item.telemetry.cpu_usage|default:'0.0' }}"),
+      currentRam: parseFloat("{{ item.telemetry.ram_usage|default:'0.0' }}")
+    };
+    {% endfor %}
+
+    const renderedEvents = new Set();
+    document.querySelectorAll('.event-item').forEach(el => {
+      renderedEvents.add(el.querySelector('.event-msg').textContent + el.querySelector('.event-time').textContent);
+    });
+
+    async function pollDashboardData() {
+      try {
+        const response = await fetch('/api/dashboard/data/');
+        if (!response.ok) return;
+        const data = await response.json();
+
+        state.baseKp = data.workload.base_kp_index;
+        state.baseWind = data.workload.base_solar_wind_speed;
+        state.targetKp = data.workload.geomagnetic_kp_index;
+        state.targetWind = data.workload.solar_wind_speed;
+        state.isLive = data.workload.is_live;
+
+        const badge = document.getElementById('nasa-live-badge');
+        if (badge) {
+          badge.textContent = state.isLive ? 'LIVE' : 'OFFLINE (RATE-LIMITED)';
+          badge.style.background = state.isLive ? 'rgba(57, 255, 20, 0.15)' : 'rgba(255, 183, 0, 0.15)';
+          badge.style.color = state.isLive ? 'var(--accent-green)' : 'var(--accent-orange)';
+          badge.style.borderColor = state.isLive ? 'var(--accent-green)' : 'var(--accent-orange)';
+        }
+
+        const baseKpEl = document.getElementById('base-kp');
+        const baseWindEl = document.getElementById('base-wind');
+        if (baseKpEl) baseKpEl.textContent = state.baseKp.toFixed(1);
+        if (baseWindEl) baseWindEl.textContent = state.baseWind.toFixed(1);
+
+        const kpSlider = document.getElementById('kp-slider');
+        const kpSliderVal = document.getElementById('kp-slider-val');
+        if (kpSlider && !isDraggingSlider && document.activeElement !== kpSlider) {
+          kpSlider.value = data.workload.base_kp_index.toFixed(1);
+          if (kpSliderVal) {
+            kpSliderVal.textContent = data.workload.base_kp_index.toFixed(1);
+          }
+        }
+
+        const overrideBtn = document.getElementById('btn-toggle-override');
+        const overrideBadge = document.getElementById('override-status-badge');
+        
+        if (overrideBtn && overrideBadge) {
+          if (data.workload.override_active) {
+            const type = data.workload.override_type;
+            overrideBtn.textContent = 'Cancel Override';
+            overrideBtn.className = `btn-override ${type === 'spike' ? 'override-active-spike' : 'override-active-drop'}`;
+            
+            overrideBadge.style.display = 'inline-block';
+            overrideBadge.textContent = type === 'spike' ? '⚠️ SOLAR STORM OVERRIDE ACTIVE' : '❄️ CALM WEATHER OVERRIDE ACTIVE';
+            overrideBadge.className = `badge-override ${type === 'spike' ? 'badge-override-spike' : 'badge-override-drop'}`;
+          } else {
+            const isStorming = state.baseKp > 5.0;
+            overrideBtn.textContent = isStorming ? 'Simulate Calm Drop' : 'Simulate Storm Spike';
+            overrideBtn.className = 'btn-override';
+            overrideBadge.style.display = 'none';
+          }
+        }
+
+        const totalNodesEl = document.getElementById('sum-total-nodes');
+        const healthyNodesEl = document.getElementById('sum-healthy-nodes');
+        const activeJobsEl = document.getElementById('sum-active-jobs');
+        if (totalNodesEl) totalNodesEl.textContent = data.nodes.length;
+        if (healthyNodesEl) healthyNodesEl.textContent = data.healthy_count;
+        if (activeJobsEl) activeJobsEl.textContent = data.total_jobs;
+
+        const activeHostnames = data.nodes.map(n => n.hostname);
+        const container = document.getElementById('nodes-container');
+
+        Object.keys(state.nodes).forEach(hostname => {
+          if (!activeHostnames.includes(hostname)) {
+            const card = document.getElementById(`card-${hostname}`);
+            if (card) {
+              card.removeAttribute('id');
+              card.classList.add('leaving');
+              setTimeout(() => {
+                card.remove();
+              }, 350);
+            }
+            delete state.nodes[hostname];
+          }
+        });
+
+        if (container && activeHostnames.length === 0) {
+          container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: var(--glass-bg); border: 1px dashed var(--glass-border); border-radius: 16px;">
+              <p style="color: var(--text-muted);">No worker nodes currently registered. Run agent containers to begin ingestion.</p>
+            </div>
+          `;
+        }
+
+        data.nodes.forEach((node, idx) => {
+          const hostname = node.hostname;
+          if (!state.nodes[hostname]) {
+            state.nodes[hostname] = { currentCpu: node.cpu_usage, currentRam: node.ram_usage };
+          }
+          state.nodes[hostname].targetCpu = node.cpu_usage;
+          state.nodes[hostname].targetRam = node.ram_usage;
+
+          let card = document.getElementById(`card-${hostname}`);
+          if (!card && container) {
+            const emptyMsg = container.querySelector('div[style*="dashed"]');
+            if (emptyMsg) emptyMsg.remove();
+
+            card = document.createElement('div');
+            card.className = 'node-card';
+            card.id = `card-${hostname}`;
+            card.innerHTML = `
+              <div class="node-header">
+                <span class="node-name">${hostname}</span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <span id="badge-ml-${hostname}" class="anomaly-badge" style="display: none;">ML Outlier</span>
+                  <span id="status-${hostname}" class="node-status-tag status-healthy">Healthy</span>
+                </div>
+              </div>
+
+              <div class="telemetry-row">
+                <span class="telemetry-label">CPU Core Utilization</span>
+                <span class="telemetry-val" style="font-family: 'Orbitron', sans-serif; font-variant-numeric: tabular-nums; display: inline-block; width: 65px; text-align: right;"><span id="val-cpu-${hostname}">0.0</span>%</span>
+              </div>
+              <div class="progress-bar-container">
+                <div id="bar-cpu-${hostname}" class="progress-bar bar-normal" style="width: 0%;"></div>
+              </div>
+
+              <div style="margin-top: 1.25rem;">
+                <div class="telemetry-row">
+                  <span class="telemetry-label">RAM Consumption</span>
+                  <span class="telemetry-val" style="font-family: 'Orbitron', sans-serif; font-variant-numeric: tabular-nums; display: inline-block; width: 65px; text-align: right;"><span id="val-ram-${hostname}">0.0</span>%</span>
+                </div>
+                <div class="progress-bar-container">
+                  <div id="bar-ram-${hostname}" class="progress-bar bar-normal" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div style="margin-top: 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem;">
+                <div>
+                  <span style="color: var(--text-muted);">Net Down:</span>
+                  <strong id="val-rx-${hostname}" style="font-family: 'Orbitron', sans-serif;">0.0 MB/s</strong>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted);">Net Up:</span>
+                  <strong id="val-tx-${hostname}" style="font-family: 'Orbitron', sans-serif;">0.0 MB/s</strong>
+                </div>
+              </div>
+
+              <div class="node-meta">
+                <span>Role: ${node.role}</span>
+                <span>Jobs: <strong id="val-jobs-${hostname}">0</strong></span>
+                <span>Threads: ${node.thread_count}</span>
+              </div>
+            `;
+
+            const children = Array.from(container.children).filter(child => child.id && child.id.startsWith('card-'));
+            const refChild = children.find(child => {
+              const childHost = child.id.replace('card-', '');
+              return childHost > hostname;
+            });
+            if (refChild) {
+              container.insertBefore(card, refChild);
+            } else {
+              container.appendChild(card);
+            }
+          }
+
+          const statusTag = document.getElementById(`status-${hostname}`);
+          if (statusTag) {
+            statusTag.textContent = node.status;
+            statusTag.className = `node-status-tag ${
+              node.status === 'Healthy' ? 'status-healthy' :
+              node.status === 'Degraded' ? 'status-degraded' : 'status-recovering'
+            }`;
+          }
+
+          const mlBadge = document.getElementById(`badge-ml-${hostname}`);
+          if (mlBadge) {
+            mlBadge.style.display = (node.is_anomaly && node.status === 'Degraded') ? 'inline-block' : 'none';
+          }
+
+          const rxVal = document.getElementById(`val-rx-${hostname}`);
+          if (rxVal) rxVal.textContent = node.network_rx.toFixed(1) + ' MB/s';
+
+          const txVal = document.getElementById(`val-tx-${hostname}`);
+          if (txVal) txVal.textContent = node.network_tx.toFixed(1) + ' MB/s';
+
+          const jobsVal = document.getElementById(`val-jobs-${hostname}`);
+          if (jobsVal) jobsVal.textContent = node.active_jobs;
+        });
+
+        const logContainer = document.getElementById('event-list-container');
+        if (logContainer) {
+          data.events.reverse().forEach(event => {
+            const eventKey = event.message + event.timestamp;
+            if (!renderedEvents.has(eventKey)) {
+              renderedEvents.add(eventKey);
+              
+              const item = document.createElement('div');
+              item.className = `event-item event-new ${
+                event.level === 'INFO' ? 'event-item-info' :
+                event.level === 'WARNING' ? 'event-item-warning' :
+                event.level === 'SUCCESS' ? 'event-item-success' : 'event-item-error'
+              }`;
+              
+              item.innerHTML = `
+                <div>
+                  <span class="event-time">${event.timestamp}</span>
+                  <span class="event-badge ${
+                    event.level === 'INFO' ? 'badge-info' :
+                    event.level === 'WARNING' ? 'badge-warning' :
+                    event.level === 'SUCCESS' ? 'badge-success' : 'badge-error'
+                  }">${event.level}</span>
+                  <span class="event-host">[${event.hostname}]</span>
+                </div>
+                <div class="event-msg">${event.message}</div>
+              `;
+              
+              const emptyPlaceholder = logContainer.querySelector('p');
+              if (emptyPlaceholder) emptyPlaceholder.remove();
+
+              logContainer.insertBefore(item, logContainer.firstChild);
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Dashboard poll error:", err);
+      }
+    }
+
+    setInterval(pollDashboardData, 2000);
+
+    let currentKp = state.targetKp;
+    let currentWind = state.targetWind;
+
+    function renderLoop() {
+      currentKp += (state.targetKp - currentKp) * 0.05;
+      currentWind += (state.targetWind - currentWind) * 0.05;
+
+      const timeSecs = Date.now() / 1000;
+      const kpJitter = Math.sin(timeSecs * 1.5) * 0.12 + Math.cos(timeSecs * 2.8) * 0.08;
+      const windJitter = Math.sin(timeSecs * 1.2) * 4.5 + Math.cos(timeSecs * 2.3) * 2.5;
+      const finalKp = Math.max(0.0, Math.min(9.0, currentKp + kpJitter));
+      const finalWind = Math.max(100.0, Math.min(1000.0, currentWind + windJitter));
+      const finalMultiplier = Math.max(1.0, 1.0 + (finalKp - 3.0) * 0.35);
+      const kpEl = document.getElementById('active-kp');
+      const windEl = document.getElementById('active-wind');
+      const multEl = document.getElementById('active-multiplier');
+
+      if (kpEl) kpEl.textContent = finalKp.toFixed(1);
+      if (windEl) windEl.textContent = finalWind.toFixed(1);
+      if (multEl) multEl.textContent = finalMultiplier.toFixed(2);
+
+      Object.keys(state.nodes).forEach((hostname, idx) => {
+        const node = state.nodes[hostname];
+        
+        node.currentCpu += (node.targetCpu - node.currentCpu) * 0.1;
+        node.currentRam += (node.targetRam - node.currentRam) * 0.1;
+
+        const cpuNoise = Math.sin(timeSecs * 2.5 + idx) * 0.3 + Math.cos(timeSecs * 4.2 + idx) * 0.2;
+        const ramNoise = Math.sin(timeSecs * 1.8 + idx) * 0.05;
+        const finalCpu = Math.max(0.0, Math.min(100.0, node.currentCpu + cpuNoise));
+        const finalRam = Math.max(0.0, Math.min(100.0, node.currentRam + ramNoise));
+        const cpuText = document.getElementById(`val-cpu-${hostname}`);
+        const cpuBar = document.getElementById(`bar-cpu-${hostname}`);
+        if (cpuText) cpuText.textContent = finalCpu.toFixed(1);
+        if (cpuBar) {
+          cpuBar.style.width = finalCpu.toFixed(1) + '%';
+          cpuBar.className = `progress-bar ${finalCpu > 85 ? 'bar-warning' : 'bar-normal'}`;
+        }
+
+        const ramText = document.getElementById(`val-ram-${hostname}`);
+        const ramBar = document.getElementById(`bar-ram-${hostname}`);
+        if (ramText) ramText.textContent = finalRam.toFixed(1);
+        if (ramBar) {
+          ramBar.style.width = finalRam.toFixed(1) + '%';
+          ramBar.className = `progress-bar ${finalRam > 80 ? 'bar-warning' : 'bar-normal'}`;
+        }
+      });
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    requestAnimationFrame(renderLoop);
+
+    const overrideBtn = document.getElementById('btn-toggle-override');
+    if (overrideBtn) {
+      overrideBtn.addEventListener('click', async () => {
+        overrideBtn.disabled = true;
+        try {
+          const response = await fetch('/api/workload/override/', { method: 'POST' });
+          if (response.ok) await pollDashboardData();
+        } catch (err) {
+          console.error('Failed to toggle weather override:', err);
+        } finally {
+          overrideBtn.disabled = false;
+        }
+      });
+    }
+
+    const kpSlider = document.getElementById('kp-slider');
+    const kpSliderVal = document.getElementById('kp-slider-val');
+    
+    if (kpSlider) {
+      kpSlider.addEventListener('mousedown', () => { isDraggingSlider = true; });
+      kpSlider.addEventListener('touchstart', () => { isDraggingSlider = true; });
+      
+      const stopDragging = () => { isDraggingSlider = false; };
+      window.addEventListener('mouseup', stopDragging);
+      window.addEventListener('touchend', stopDragging);
+
+      kpSlider.addEventListener('input', (e) => {
+        if (kpSliderVal) {
+          kpSliderVal.textContent = parseFloat(e.target.value).toFixed(1);
+        }
+      });
+      
+      kpSlider.addEventListener('change', async (e) => {
+        const kpVal = parseFloat(e.target.value);
+        if (kpSliderVal) {
+          kpSliderVal.textContent = kpVal.toFixed(1);
+        }
+        try {
+          const response = await fetch('/api/workload/override/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ kp: kpVal })
+          });
+          if (response.ok) {
+            await pollDashboardData();
+          }
+        } catch (err) {
+          console.error('Failed to set weather override Kp:', err);
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
