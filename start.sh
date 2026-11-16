@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 redis-server --daemonize yes
 
@@ -14,4 +15,4 @@ export CONTROL_PLANE_URL="http://127.0.0.1:7860"
   python /app/mock_agent/mock_agent.py grid-worker-02 &
 ) &
 
-python manage.py runserver 0.0.0.0:7860
+exec python manage.py runserver 0.0.0.0:7860
